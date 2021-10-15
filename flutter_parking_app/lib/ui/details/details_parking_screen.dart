@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/services/firebase_service.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../core/model/parking_model.dart';
+import '../../services/firebase_service.dart';
 import '../../shared/custom_app_bar.dart';
 
 class DetailsParkingScreen extends StatefulWidget {
@@ -14,10 +15,9 @@ class DetailsParkingScreen extends StatefulWidget {
 }
 
 class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
-  final service = FirebaseService();
-
   @override
   Widget build(BuildContext context) {
+    final serviceProvider = Provider.of<FirebaseService>(context);
     final numberBehavior = BehaviorSubject<int>.seeded(0);
     final parkModel = ModalRoute.of(context).settings.arguments as ParkingModel;
 
@@ -44,12 +44,19 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                         borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(8),
                             topRight: Radius.circular(8)),
-                        child: Image.network(
-                          data['image'],
-                          fit: BoxFit.fill,
-                          width: double.infinity,
-                          height: 250,
-                        ),
+                        child: data['image'] != null
+                            ? Image.network(
+                                data['image'],
+                                fit: BoxFit.fill,
+                                width: double.infinity,
+                                height: 250,
+                              )
+                            : Image.asset(
+                                'assets/images/photo_pic.png',
+                                fit: BoxFit.fill,
+                                width: double.infinity,
+                                height: 250,
+                              ),
                       ),
                       SizedBox(
                         height: 40,
@@ -57,16 +64,16 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       Text(
                         'Overview',
                         style: TextStyle(
-                            color: Colors.blue,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20),
+                            fontSize: 25),
                       ),
                       SizedBox(
                         height: 20,
                       ),
                       Row(
                         children: [
-                          Icon(Icons.business),
+                          Icon(Icons.business, color: Colors.orange),
                           SizedBox(width: 10),
                           Text(
                             'Company Name: ',
@@ -80,7 +87,7 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.location_city),
+                          Icon(Icons.location_city, color: Colors.orange),
                           SizedBox(width: 10),
                           Text(
                             'City: ',
@@ -94,7 +101,7 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.flag),
+                          Icon(Icons.flag, color: Colors.orange),
                           SizedBox(width: 10),
                           Text(
                             'Country: ',
@@ -108,7 +115,10 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.home),
+                          Icon(
+                            Icons.home,
+                            color: Colors.orange,
+                          ),
                           SizedBox(width: 10),
                           Text(
                             'Street: ',
@@ -122,10 +132,10 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.directions_car),
+                          Icon(Icons.directions_car, color: Colors.orange),
                           SizedBox(width: 10),
                           Text(
-                            'Parking space: ',
+                            'Parking slots: ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text('${data['numOfSlots']}'),
@@ -136,10 +146,10 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.directions_car),
+                          Icon(Icons.directions_car, color: Colors.orange),
                           SizedBox(width: 10),
                           Text(
-                            'Available parking space: ',
+                            'Available parking slots: ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text('${data['availableNumOfSlots']}')
@@ -166,19 +176,21 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(
                                       left: 5.0, right: 5.0),
-                                  child: Icon(Icons.add),
+                                  child: Icon(Icons.add,
+                                      color: Color.fromRGBO(108, 99, 255, 1)),
                                 ),
                                 style: TextButton.styleFrom(
                                   primary: Colors.blue,
                                   onSurface: Colors.yellow,
-                                  side:
-                                      BorderSide(color: Colors.blue, width: 2),
+                                  side: BorderSide(
+                                      color: Color.fromRGBO(108, 99, 255, 1),
+                                      width: 2),
                                   shape: const RoundedRectangleBorder(
                                       borderRadius: BorderRadius.all(
                                           Radius.circular(25))),
                                 ),
                                 onPressed: () {
-                                  service.incrementReservation(
+                                  serviceProvider.incrementReservation(
                                       parkModel.id.toString(),
                                       data['availableNumOfSlots'],
                                       data['numOfSlots'],
@@ -197,19 +209,21 @@ class _DetailsParkingScreenState extends State<DetailsParkingScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(
                                       left: 10.0, right: 10.0),
-                                  child: Icon(Icons.remove),
+                                  child: Icon(Icons.remove,
+                                      color: Color.fromRGBO(108, 99, 255, 1)),
                                 ),
                                 style: TextButton.styleFrom(
                                   primary: Colors.blue,
                                   onSurface: Colors.yellow,
-                                  side:
-                                      BorderSide(color: Colors.blue, width: 2),
+                                  side: BorderSide(
+                                      color: Color.fromRGBO(108, 99, 255, 1),
+                                      width: 2),
                                   shape: const RoundedRectangleBorder(
                                       borderRadius: BorderRadius.all(
                                           Radius.circular(25))),
                                 ),
                                 onPressed: () {
-                                  service.decrementReservation(
+                                  serviceProvider.decrementReservation(
                                       parkModel.id.toString(),
                                       data['availableNumOfSlots'],
                                       data['numOfSlots'],

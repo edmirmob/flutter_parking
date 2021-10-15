@@ -6,6 +6,7 @@ class CustomTextFormField extends StatelessWidget {
   final Function(String validation) validation;
   final void Function(String validation) onSaved;
   final Widget icon;
+  final Widget sufixIcon;
   final String hintText;
   final double height;
   final TextInputAction textInputAction;
@@ -22,8 +23,9 @@ class CustomTextFormField extends StatelessWidget {
       this.validation,
       this.onSaved,
       this.icon,
+      this.sufixIcon,
       this.hintText,
-      this.height: 50.0,
+      this.height: 40.0,
       this.textInputAction,
       this.autofocus,
       this.obscureText = false,
@@ -46,6 +48,7 @@ class CustomTextFormField extends StatelessWidget {
         textInputAction: textInputAction,
         obscureText: obscureText,
         decoration: InputDecoration(
+          suffixIcon: sufixIcon,
           label: label,
           prefixIcon: icon,
           contentPadding: EdgeInsets.fromLTRB(20, 15, 20, 15),

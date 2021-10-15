@@ -1,9 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/core/model/user_model.dart';
-import 'package:flutter_parking_app/shared/custom_app_bar.dart';
-import 'package:flutter_parking_app/shared/custom_eleveted_button.dart';
-import 'package:flutter_parking_app/shared/custom_text_form_filed.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/model/user_model.dart';
+import '../../services/firebase_service.dart';
+import '../../shared/custom_app_bar.dart';
+import '../../shared/custom_eleveted_button.dart';
+import '../../shared/custom_text_form_filed.dart';
+import '../home/home_screen.dart';
 
 class ProfileUserScreen extends StatefulWidget {
   const ProfileUserScreen({Key key}) : super(key: key);
@@ -16,10 +19,13 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
   final _formKey = GlobalKey<FormState>();
   final firstNameEditingController = new TextEditingController();
   final secondNameEditingController = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final userModel = ModalRoute.of(context).settings.arguments as UserModel;
-    print('Ovo je test za ID: ${userModel.uid}');
+    final serviceProvider = Provider.of<FirebaseService>(context);
+    firstNameEditingController.text = userModel.firstName.toString();
+    secondNameEditingController.text = userModel.secondName.toString();
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -40,7 +46,7 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
                   SizedBox(
                       height: 180,
                       child: Image.asset(
-                        "assets/images/logo.png",
+                        "assets/images/profile_det.png",
                         fit: BoxFit.contain,
                       )),
                   SizedBox(height: 45),
@@ -59,7 +65,8 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
                       return null;
                     },
                     icon: Icon(Icons.account_circle),
-                    label: Text(userModel.firstName),
+                    label: Text('First name'),
+                    hintText: 'Edit first name',
                     textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 20),
@@ -67,7 +74,8 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
                     autofocus: false,
                     textEditingController: secondNameEditingController,
                     keyboardType: TextInputType.name,
-                    label: Text(userModel.secondName),
+                    label: Text('Second name'),
+                    hintText: 'Edit second name',
                     validation: (String value) {
                       if (value.isEmpty) {
                         return ("Second Name cannot be Empty");
@@ -93,27 +101,32 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
                       return null;
                     },
                     icon: Icon(Icons.mail),
-                    hintText: userModel.email,
+                    hintText: userModel.email ?? 'Email empty',
                     textInputAction: TextInputAction.next,
                   ),
                   SizedBox(
-                    height: 30,
+                    height: 50,
                   ),
                   CustomElevatedButton(
                     child: Text(
                       'Update user',
-                      style: TextStyle(fontSize: 26),
+                      style: TextStyle(fontSize: 20),
                     ),
-                    color: Colors.blue,
+                    color: Color.fromRGBO(108, 99, 255, 1),
                     borderRadius: 20,
                     onPressed: () {
-                      FirebaseFirestore.instance
-                          .collection('user')
-                          .doc(userModel.uid)
-                          .update({
-                        "firstName": firstNameEditingController.text,
-                        "secondName": secondNameEditingController.text,
-                      });
+                      serviceProvider.updateUser(
+                          userId: userModel.uid,
+                          firstName: firstNameEditingController.text.isNotEmpty
+                              ? firstNameEditingController.text
+                              : userModel.firstName,
+                          secondName: secondNameEditingController.text.isEmpty
+                              ? userModel.secondName
+                              : secondNameEditingController.text);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => HomeScreen()));
                     },
                   ),
                 ],

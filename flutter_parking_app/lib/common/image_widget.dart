@@ -19,7 +19,7 @@ class _ImageWidgetState extends State<ImageWidget> {
     final imageFile = await ImagePicker().pickImage(source: ImageSource.camera);
     final File fileImg = File(imageFile.path);
     if (imageFile == null) {
-      return;
+      return null;
     }
     setState(() {
       _storageImage = fileImg;
@@ -28,6 +28,7 @@ class _ImageWidgetState extends State<ImageWidget> {
     final appDirectory = await syspaths.getApplicationDocumentsDirectory();
     final fileName = paths.basename(imageFile.path);
     final savedImage = await fileImg.copy('${appDirectory.path}/$fileName');
+    return savedImage;
   }
 
   Future<void> _takePictureGallery() async {
@@ -44,14 +45,15 @@ class _ImageWidgetState extends State<ImageWidget> {
     final appDirectory = await syspaths.getApplicationDocumentsDirectory();
     final fileName = paths.basename(imageFile.path);
     final savedImage = await fileImg.copy('${appDirectory.path}/$fileName');
+    return savedImage;
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(alignment: AlignmentDirectional.topCenter, children: <Widget>[
       Container(
-        decoration: BoxDecoration(color: Colors.black, shape: BoxShape.circle),
-        padding: const EdgeInsets.all(3.0),
+        decoration: BoxDecoration(color: Colors.black12, shape: BoxShape.circle),
+        padding: const EdgeInsets.all(2.0),
         child: CircleAvatar(
           backgroundColor: Colors.white,
           radius: 50,
@@ -64,9 +66,10 @@ class _ImageWidgetState extends State<ImageWidget> {
                     height: 120,
                   )
                 : Image.asset(
-                    'assets/images/logo.png',
+                    'assets/images/photo_pic.png',
                     width: 120,
                     height: 120,
+                    fit: BoxFit.cover,
                     colorBlendMode: BlendMode.color,
                   ),
           ),

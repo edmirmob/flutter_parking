@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/core/model/parking_model.dart';
-import 'package:flutter_parking_app/shared/custom_app_bar.dart';
-import 'package:flutter_parking_app/shared/custom_eleveted_button.dart';
-import 'package:flutter_parking_app/ui/parking/add_parking_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../core/model/parking_model.dart';
+import '../../shared/custom_app_bar.dart';
+import '../../shared/custom_eleveted_button.dart';
+import '../parking/add_parking_screen.dart';
 
 class MapLocation extends StatefulWidget {
   @override
@@ -18,7 +19,7 @@ class MapLocationState extends State<MapLocation> {
   Completer<GoogleMapController> _controller = Completer();
   ParkingModel parking;
   static final CameraPosition _positionInitial = CameraPosition(
-    target: LatLng(43.86708145744051, 18.394925231684855),
+    target: LatLng(43.85565892764279, 18.390646514886697),
     zoom: 14.4746,
   );
   MapType type;
@@ -51,6 +52,7 @@ class MapLocationState extends State<MapLocation> {
         children: [
           GoogleMap(
             mapType: type,
+            zoomControlsEnabled: false,
             initialCameraPosition: _positionInitial,
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
@@ -71,6 +73,7 @@ class MapLocationState extends State<MapLocation> {
             right: 5,
             top: 50,
             child: FloatingActionButton(
+              backgroundColor: Colors.orange[300],
               onPressed: () {
                 setState(() {
                   type =
@@ -84,18 +87,18 @@ class MapLocationState extends State<MapLocation> {
             bottom: 2,
             child: Container(
               color: Colors.transparent,
-              height: 56,
+              height: 50,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   Container(
-                    width: MediaQuery.of(context).size.width * 0.85,
+                    width: MediaQuery.of(context).size.width,
                     child: CustomElevatedButton(
                       child: Text(
                         'Next step',
-                        style: TextStyle(fontSize: 26),
+                        style: TextStyle(fontSize: 20),
                       ),
-                      color: Colors.blue,
+                      color: Color.fromRGBO(108, 99, 255, 1),
                       borderRadius: 20,
                       onPressed: () {
                         parking != null

@@ -1,15 +1,17 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/common/image_widget.dart';
-import 'package:flutter_parking_app/core/model/parking_model.dart';
-import 'package:flutter_parking_app/shared/custom_app_bar.dart';
-import 'package:flutter_parking_app/shared/custom_eleveted_button.dart';
-import 'package:flutter_parking_app/shared/custom_text_form_filed.dart';
-import 'package:flutter_parking_app/ui/home/home_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+
+import '../../common/image_widget.dart';
+import '../../core/model/parking_model.dart';
+import '../../services/firebase_service.dart';
+import '../../shared/custom_app_bar.dart';
+import '../../shared/custom_eleveted_button.dart';
+import '../../shared/custom_text_form_filed.dart';
+import '../home/home_screen.dart';
 
 class AddParkingScreen extends StatefulWidget {
   const AddParkingScreen({Key key}) : super(key: key);
@@ -33,7 +35,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
   @override
   Widget build(BuildContext context) {
     final parkModel = ModalRoute.of(context).settings.arguments as ParkingModel;
-
+    final serviceProvider = Provider.of<FirebaseService>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -57,7 +59,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                     CustomTextFormField(
                       autofocus: true,
                       textEditingController: companyEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("First Name cannot be Empty");
@@ -75,7 +77,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                     CustomTextFormField(
                       autofocus: false,
                       textEditingController: parkingSlotEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("Name of parking slot cannot be Empty");
@@ -94,7 +96,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                       isEnabled: false,
                       autofocus: false,
                       textEditingController: countryEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("Country cannot be Empty");
@@ -113,7 +115,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                       isEnabled: false,
                       autofocus: false,
                       textEditingController: cityEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("City cannot be Empty");
@@ -132,7 +134,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                       isEnabled: false,
                       autofocus: false,
                       textEditingController: streetEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("Street cannot be Empty");
@@ -151,7 +153,7 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                       autofocus: false,
                       textEditingController: numberParkingEditingController,
                       keyboardType: TextInputType.number,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("Number of Parking cannot be Empty");
@@ -165,42 +167,34 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
                       hintText: "Number of Parking",
                       textInputAction: TextInputAction.done,
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 30),
                     StreamBuilder<Object>(
                         stream: controller.stream,
                         builder: (context, snapshot) {
-                          print(snapshot.data.toString());
                           return CustomElevatedButton(
                             child: Text(
-                              'Registar',
-                              style: TextStyle(fontSize: 26),
+                              'Add parking',
+                              style: TextStyle(fontSize: 20),
                             ),
                             onPressed: () {
-                              try {
-                                FirebaseFirestore.instance
-                                    .collection('parking')
-                                    .add({
-                                  'parkingName':
+                              serviceProvider.addPargingSlot(
+                                  parkingName:
                                       parkingSlotEditingController.text,
-                                  'companyName': companyEditingController.text,
-                                  'country': parkModel.country,
-                                  'city': parkModel.city,
-                                  'street': parkModel.street,
-                                  'numOfSlots': int.parse(
+                                  companyName: companyEditingController.text,
+                                  country: parkModel.country,
+                                  city: parkModel.city,
+                                  street: parkModel.street,
+                                  numOfSlots: int.parse(
                                       numberParkingEditingController.text),
-                                  'availableNumOfSlots': int.parse(
+                                  availableNumOfSlots: int.parse(
                                       numberParkingEditingController.text),
-                                  'image': snapshot?.data
-                                });
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => HomeScreen()));
-                              } catch (e) {
-                                return e;
-                              }
+                                  image: snapshot?.data);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => HomeScreen()));
                             },
-                            color: Colors.blue,
+                            color: Color.fromRGBO(108, 99, 255, 1),
                             borderRadius: 20,
                           );
                         }),
@@ -223,13 +217,12 @@ class _AddParkingScreenState extends State<AddParkingScreen> {
     await uploadTask.then((res) {
       res.ref.getDownloadURL();
     });
-    print('File Uploaded');
     String returnURL;
     await storageReference.getDownloadURL().then((fileURL) {
       returnURL = fileURL;
       controller.add(returnURL);
     });
 
-    return returnURL;
+    return returnURL.toString();
   }
 }

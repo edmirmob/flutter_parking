@@ -21,7 +21,7 @@ class CustomAppBar extends PreferredSize {
     final theme = Theme.of(context);
 
     return AppBar(
-      backgroundColor: theme.appBarTheme.backgroundColor,
+      backgroundColor: Color.fromRGBO(108, 99, 255, 1),
       toolbarHeight: 60,
       actions: actions,
       elevation: elevation ?? theme.appBarTheme.elevation,

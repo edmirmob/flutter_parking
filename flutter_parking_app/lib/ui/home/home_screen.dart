@@ -1,17 +1,16 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/core/model/parking_model.dart';
-import 'package:flutter_parking_app/core/model/user_model.dart';
-import 'package:flutter_parking_app/shared/custom_app_bar.dart';
-import 'package:flutter_parking_app/ui/details/details_parking_screen.dart';
-import 'package:flutter_parking_app/ui/login/login_screen.dart';
-import 'package:flutter_parking_app/ui/maps/map_location.dart';
-import 'package:flutter_parking_app/ui/profile/profile_user_screen.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/model/parking_model.dart';
+import '../../core/model/user_model.dart';
+import '../../services/firebase_service.dart';
+import '../../shared/custom_app_bar.dart';
+import '../details/details_parking_screen.dart';
+import '../maps/map_location.dart';
+import '../profile/profile_user_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key key}) : super(key: key);
@@ -39,13 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
       this.loggedInUser = UserModel.fromMap(value.data());
 
       setState(() {
-        isAlowed =loggedInUser.isClient;
+        isAlowed = loggedInUser.isClient;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final serviceProvider = Provider.of<FirebaseService>(context);
     return Scaffold(
         appBar: CustomAppBar(
           title: "Home",
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
                 color: Colors.white,
                 onPressed: () {
-                  logout(context);
+                  serviceProvider.signOut(context);
                 },
                 icon: Icon(Icons.logout)),
             IconButton(
@@ -82,11 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('parking')
-                    .snapshots(),
+                stream: serviceProvider.readParkingItems(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                   if (snapshot.data == null){
+                  if (snapshot.data == null) {
                     return Center(child: CircularProgressIndicator());
                   }
                   return ListView.builder(
@@ -96,8 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return CircularProgressIndicator();
                       DocumentSnapshot data = snapshot.data.docs[index];
                       return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -124,8 +121,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: ClipRRect(
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(8)),
-                                      child: Image.network(data['image'],
-                                          fit: BoxFit.cover),
+                                      child: data['image'] != null
+                                          ? Image.network(data['image'],
+                                              fit: BoxFit.cover)
+                                          : Image.asset(
+                                              'assets/images/photo_pic.png',
+                                              fit: BoxFit.cover),
                                     ),
                                   ),
                                   SizedBox(
@@ -137,15 +138,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'City: ${data['city']}',
+                                          '${data['city']}',
                                           style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
                                         ),
                                         SizedBox(
                                           height: 5,
                                         ),
                                         Text(
-                                          'Street: ${data['street']}',
+                                          '${data['street']}',
                                           maxLines: 2,
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
@@ -154,10 +156,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           height: 5,
                                         ),
                                         Text(
-                                          'Number of parking slots: ${data['numOfSlots']}',
+                                          '${data['availableNumOfSlots']} slots available',
                                           maxLines: 2,
                                           style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.orange),
                                         ),
                                       ],
                                     ),
@@ -175,8 +178,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        floatingActionButton: isAlowed==true 
+        floatingActionButton: isAlowed == true
             ? FloatingActionButton(
+                backgroundColor: Color.fromRGBO(108, 99, 255, 1),
                 onPressed: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => MapLocation()));
@@ -184,11 +188,5 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Icon(Icons.add),
               )
             : null);
-  }
-
-  Future<void> logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()));
   }
 }

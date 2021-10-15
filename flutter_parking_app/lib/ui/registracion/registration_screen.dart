@@ -1,11 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_parking_app/services/firebase_service.dart';
-import 'package:flutter_parking_app/ui/login/login_screen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
-import '../../core/model/user_model.dart';
+import '../../services/firebase_service.dart';
 import '../../shared/custom_eleveted_button.dart';
 import '../../shared/custom_text_form_filed.dart';
 
@@ -17,18 +13,17 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final _auth = FirebaseAuth.instance;
-
   final _formKey = GlobalKey<FormState>();
   final firstNameEditingController = new TextEditingController();
   final secondNameEditingController = new TextEditingController();
   final emailEditingController = new TextEditingController();
   final passwordEditingController = new TextEditingController();
   final confirmPasswordEditingController = new TextEditingController();
-  bool chechController = false;
-  final service = FirebaseService();
+  bool checkController = false;
+
   @override
   Widget build(BuildContext context) {
+    final serviceProvider = Provider.of<FirebaseService>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,17 +49,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     SizedBox(
-                        height: 180,
-                        child: Image.asset(
-                          "assets/images/logo.png",
-                          fit: BoxFit.contain,
-                        )),
+                      height: 250,
+                      child: Image.asset(
+                        "assets/images/city_driver.png",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    Text(
+                      'Parking app',
+                      style:
+                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                    ),
                     SizedBox(height: 45),
                     CustomTextFormField(
                       autofocus: false,
                       textEditingController: firstNameEditingController,
                       keyboardType: TextInputType.name,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{3,}$');
                         if (value.isEmpty) {
                           return ("First Name cannot be Empty");
@@ -83,7 +84,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       autofocus: false,
                       textEditingController: secondNameEditingController,
                       keyboardType: TextInputType.name,
-                      validation: (String value) {
+                      validation: (value) {
                         if (value.isEmpty) {
                           return ("Second Name cannot be Empty");
                         }
@@ -98,7 +99,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       autofocus: false,
                       textEditingController: emailEditingController,
                       keyboardType: TextInputType.emailAddress,
-                      validation: (String value) {
+                      validation: (value) {
                         if (value.isEmpty) {
                           return ("Please Enter Your Email");
                         }
@@ -116,7 +117,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     CustomTextFormField(
                       autofocus: false,
                       textEditingController: passwordEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         RegExp regex = new RegExp(r'^.{6,}$');
                         if (value.isEmpty) {
                           return ("Password is required for login");
@@ -135,7 +136,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     CustomTextFormField(
                       autofocus: false,
                       textEditingController: confirmPasswordEditingController,
-                      validation: (String value) {
+                      validation: (value) {
                         if (confirmPasswordEditingController.text !=
                             passwordEditingController.text) {
                           return "Password don't match";
@@ -153,11 +154,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       children: [
                         Text('Allow add parking'),
                         Checkbox(
-                            value: chechController,
-                            activeColor: Colors.grey,
+                            value: checkController,
+                            activeColor: Color.fromRGBO(108, 99, 255, 1),
                             onChanged: (bool value) {
                               setState(() {
-                                chechController = value;
+                                checkController = value;
                               });
                             }),
                       ],
@@ -166,16 +167,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     CustomElevatedButton(
                       child: Text(
                         'Sign Up',
-                        style: TextStyle(fontSize: 26),
+                        style: TextStyle(fontSize: 20),
                       ),
                       onPressed: () {
-                        service.signUp(
-                            emailEditingController.text,
-                            passwordEditingController.text,
-                            _formKey,
-                            postDetailsToFirestore());
+                        serviceProvider.signUp(
+                          emailEditingController.text,
+                          passwordEditingController.text,
+                          _formKey,
+                          firstNameEditingController.text,
+                          secondNameEditingController.text,
+                          checkController,
+                          context,
+                        );
                       },
-                      color: Colors.blue,
+                      color: Color.fromRGBO(108, 99, 255, 1),
                       borderRadius: 20,
                     ),
                   ],
@@ -186,29 +191,5 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ),
       ),
     );
-  }
-
-  postDetailsToFirestore() async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    User user = _auth.currentUser;
-
-    UserModel userModel = UserModel();
-
-    userModel.email = emailEditingController.text;
-    userModel.uid = user.uid;
-    userModel.firstName = firstNameEditingController.text;
-    userModel.secondName = secondNameEditingController.text;
-    userModel.isClient = chechController;
-
-    await firebaseFirestore
-        .collection("user")
-        .doc(user.uid)
-        .set(userModel.toMap());
-    Fluttertoast.showToast(msg: "Account created successfully :) ");
-
-    Navigator.pushAndRemoveUntil(
-        (context),
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false);
   }
 }
